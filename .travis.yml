@@ -9,8 +9,14 @@ before_install:
 
 install:
   - sudo apt-get -y install extra-cmake-modules libqt5webkit5-dev libqt5x11extras5-dev libarchive-dev libsqlite3-dev libxcb-keysyms1-dev # qt59base
-#  - source /opt/qt*/bin/qt*-env.sh
-
+# - source /opt/qt*/bin/qt*-env.sh
+# -  extra-cmake-modules KDE project; https://superuser.com/questions/850029/could-not-find-a-configuration-file-for-package-ecm-that-is-compatible-with-re/912259#912259
+  - git clone git://anongit.kde.org/extra-cmake-modules
+  - cd extra-cmake-modules
+  - mkdir build && cd build    
+  - cmake ..
+  - make && sudo make install
+  - cd ../..
 script:
   - mkdir build && cd build
   - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
@@ -25,7 +31,7 @@ script:
 
 after_success:
   - find appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
-  - # curl --upload-file Zeal*.AppImage https://transfer.sh/Zeal-git.$(git rev-parse --short HEAD)-x86_64.AppImage
+# - curl --upload-file Zeal*.AppImage https://transfer.sh/Zeal-git.$(git rev-parse --short HEAD)-x86_64.AppImage
   - wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
   - bash upload.sh Zeal*.AppImage*
   
