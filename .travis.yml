@@ -8,7 +8,7 @@ before_install:
 #  - sudo apt-get update -qq
 
 install:
-  - sudo apt-get -y install extra-cmake-modules libqt5webkit5-dev libqt5x11extras5-dev libarchive-dev libsqlite3-dev libxcb-keysyms1-dev # qt59base
+  - sudo apt-get -y install libqt5webkit5-dev libqt5x11extras5-dev libarchive-dev libsqlite3-dev libxcb-keysyms1-dev # qt59base
 # - source /opt/qt*/bin/qt*-env.sh
 # -  extra-cmake-modules KDE project; https://superuser.com/questions/850029/could-not-find-a-configuration-file-for-package-ecm-that-is-compatible-with-re/912259#912259
   - git clone git://anongit.kde.org/extra-cmake-modules
