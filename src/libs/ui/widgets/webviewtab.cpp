@@ -23,12 +23,12 @@
 
 #include "webviewtab.h"
 
+#include "searchtoolbar.h"
 #include "webview.h"
 
 #include <QCoreApplication>
-#include <QLineEdit>
+#include <QKeyEvent>
 #include <QStyle>
-#include <QResizeEvent>
 #include <QWebFrame>
 #include <QWebHistory>
 #include <QWebPage>
@@ -36,24 +36,14 @@
 
 using namespace Zeal::WidgetUi;
 
-WebViewTab::WebViewTab(QWidget *parent) :
-    QWidget(parent),
-    m_searchLineEdit(new QLineEdit(this))
+WebViewTab::WebViewTab(QWidget *parent)
+    : QWidget(parent)
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
-    m_searchLineEdit->hide();
-    m_searchLineEdit->installEventFilter(this);
-    connect(m_searchLineEdit, &QLineEdit::textChanged, this, &WebViewTab::find);
-
     m_webView = new WebView();
-    connect(m_webView, &QWebView::loadFinished, this, [this](bool ok) {
-        Q_UNUSED(ok)
-        moveLineEdit();
-    });
-
     connect(m_webView->page(), &QWebPage::linkHovered, [this](const QString &link) {
         if (link.startsWith(QLatin1String("file:")) || link.startsWith(QLatin1String("qrc:")))
             return;
@@ -61,7 +51,6 @@ WebViewTab::WebViewTab(QWidget *parent) :
         setToolTip(link);
     });
 
-    connect(m_webView, &QWebView::linkClicked, this, &WebViewTab::linkClicked);
     connect(m_webView, &QWebView::titleChanged, this, &WebViewTab::titleChanged);
     connect(m_webView, &QWebView::urlChanged, this, &WebViewTab::urlChanged);
 
@@ -81,30 +70,17 @@ void WebViewTab::setZoomLevel(int level)
     m_webView->setZoomLevel(level);
 }
 
-bool WebViewTab::eventFilter(QObject *object, QEvent *event)
+void WebViewTab::setJavaScriptEnabled(bool enabled)
 {
-    if (object == m_searchLineEdit && event->type() == QEvent::KeyPress) {
-        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
-        switch (keyEvent->key()) {
-        case Qt::Key_Escape:
-            hideSearchBar();
-            return true;
-        case Qt::Key_Enter:
-        case Qt::Key_Return:
-            findNext(m_searchLineEdit->text(), keyEvent->modifiers() & Qt::ShiftModifier);
-            return true;
-        case Qt::Key_Down:
-        case Qt::Key_Up:
-        case Qt::Key_PageDown:
-        case Qt::Key_PageUp:
-            QCoreApplication::sendEvent(m_webView, event);
-            return true;
-        default:
-            break;
-        }
-    }
+    m_webView->page()->settings()->setAttribute(QWebSettings::JavascriptEnabled, enabled);
+}
 
-    return QWidget::eventFilter(object, event);
+void WebViewTab::setWebBridgeObject(const QString &name, QObject *object)
+{
+    connect(m_webView->page()->mainFrame(), &QWebFrame::javaScriptWindowObjectCleared,
+            this, [=]() {
+        m_webView->page()->mainFrame()->addToJavaScriptWindowObject(name, object);
+    });
 }
 
 void WebViewTab::load(const QUrl &url)
@@ -117,9 +93,21 @@ void WebViewTab::focus()
     m_webView->setFocus();
 }
 
-QSize WebViewTab::sizeHint() const
+void WebViewTab::activateSearchBar()
 {
-    return m_webView->sizeHint();
+    if (m_searchToolBar == nullptr) {
+        m_searchToolBar = new SearchToolBar(m_webView);
+        layout()->addWidget(m_searchToolBar);
+    }
+
+    if (m_webView->hasSelection()) {
+        const QString selectedText = m_webView->selectedText().simplified();
+        if (!selectedText.isEmpty()) {
+            m_searchToolBar->setText(selectedText);
+        }
+    }
+
+    m_searchToolBar->activate();
 }
 
 void WebViewTab::back()
@@ -130,22 +118,6 @@ void WebViewTab::back()
 void WebViewTab::forward()
 {
     m_webView->forward();
-}
-
-void WebViewTab::showSearchBar()
-{
-    m_searchLineEdit->show();
-    m_searchLineEdit->setFocus();
-    if (!m_searchLineEdit->text().isEmpty()) {
-        m_searchLineEdit->selectAll();
-        find(m_searchLineEdit->text());
-    }
-}
-
-void WebViewTab::hideSearchBar()
-{
-    m_searchLineEdit->hide();
-    m_webView->findText(QString(), QWebPage::HighlightAllOccurrences);
 }
 
 bool WebViewTab::canGoBack() const
@@ -177,50 +149,10 @@ void WebViewTab::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key()) {
     case Qt::Key_Slash:
-        showSearchBar();
-        event->accept();
+        activateSearchBar();
         break;
     default:
         event->ignore();
         break;
     }
-}
-
-void WebViewTab::resizeEvent(QResizeEvent *event)
-{
-    QWidget::resizeEvent(event);
-    m_webView->resize(event->size().width(), event->size().height());
-    moveLineEdit();
-}
-
-void WebViewTab::find(const QString &text)
-{
-    if (m_webView->selectedText() != text) {
-        m_webView->findText(QString(), QWebPage::HighlightAllOccurrences);
-        m_webView->findText(QString());
-        if (text.isEmpty())
-            return;
-
-        m_webView->findText(text, QWebPage::FindWrapsAroundDocument);
-    }
-
-    m_webView->findText(text, QWebPage::HighlightAllOccurrences);
-}
-
-void WebViewTab::findNext(const QString &text, bool backward)
-{
-    QWebPage::FindFlags flags = QWebPage::FindWrapsAroundDocument;
-    if (backward)
-        flags |= QWebPage::FindBackward;
-
-    m_webView->findText(text, flags);
-}
-
-void WebViewTab::moveLineEdit()
-{
-    int frameWidth = style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
-    frameWidth += m_webView->page()->currentFrame()->scrollBarGeometry(Qt::Vertical).width();
-
-    m_searchLineEdit->move(rect().right() - frameWidth - m_searchLineEdit->sizeHint().width(), rect().top());
-    m_searchLineEdit->raise();
 }

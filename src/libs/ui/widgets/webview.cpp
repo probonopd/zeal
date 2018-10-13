@@ -23,21 +23,24 @@
 
 #include "webview.h"
 
+#include "webviewtab.h"
 #include "../mainwindow.h"
 
 #include <core/application.h>
+#include <core/settings.h>
 
-#include <QApplication>
-#include <QWebFrame>
+#include <QCheckBox>
+#include <QDesktopServices>
+#include <QMenu>
+#include <QMessageBox>
+#include <QPushButton>
 #include <QWheelEvent>
 
 using namespace Zeal::WidgetUi;
 
-WebView::WebView(QWidget *parent) :
-    QWebView(parent)
+WebView::WebView(QWidget *parent)
+    : QWebView(parent)
 {
-    setAttribute(Qt::WA_AcceptTouchEvents, false);
-    page()->setLinkDelegationPolicy(QWebPage::DelegateExternalLinks);
     page()->setNetworkAccessManager(Core::Application::instance()->networkManager());
 }
 
@@ -69,7 +72,7 @@ const QVector<int> &WebView::availableZoomLevels()
     return zoomLevels;
 }
 
-const int WebView::defaultZoomLevel()
+const int &WebView::defaultZoomLevel()
 {
     static const int level = availableZoomLevels().indexOf(100);
     return level;
@@ -93,10 +96,81 @@ void WebView::resetZoom()
 QWebView *WebView::createWindow(QWebPage::WebWindowType type)
 {
     Q_UNUSED(type)
+    return Core::Application::instance()->mainWindow()->createTab()->m_webView;
+}
 
-    MainWindow *mw = qobject_cast<MainWindow *>(qApp->activeWindow());
-    mw->createTab();
-    return this;
+void WebView::contextMenuEvent(QContextMenuEvent *event)
+{
+#if QT_VERSION >= 0x050600
+    const QWebHitTestResult hitTestResult = hitTestContent(event->pos());
+
+    // Return standard menu for input fields.
+    if (hitTestResult.isContentEditable()) {
+        QWebView::contextMenuEvent(event);
+        return;
+    }
+
+    event->accept();
+
+    if (m_contextMenu) {
+        m_contextMenu->deleteLater();
+    }
+
+    QMenu *m_contextMenu = new QMenu(this);
+
+    const QUrl linkUrl = hitTestResult.linkUrl();
+    const QString linkText = hitTestResult.linkText();
+
+    if (linkUrl.isValid()) {
+        const QString scheme = linkUrl.scheme();
+
+        if (scheme != QLatin1String("javascript")) {
+            m_contextMenu->addAction(tr("Open Link in New Tab"), this, [this]() {
+                triggerPageAction(QWebPage::WebAction::OpenLinkInNewWindow);
+            });
+        }
+
+        if (scheme != QLatin1String("qrc")) {
+            if (scheme != QLatin1String("javascript")) {
+                m_contextMenu->addAction(tr("Open Link in Desktop Browser"), this, [linkUrl]() {
+                    QDesktopServices::openUrl(linkUrl);
+                });
+            }
+
+            m_contextMenu->addAction(pageAction(QWebPage::CopyLinkToClipboard));
+        }
+    }
+
+    if (hitTestResult.isContentSelected()) {
+        if (!m_contextMenu->isEmpty()) {
+            m_contextMenu->addSeparator();
+        }
+
+        m_contextMenu->addAction(pageAction(QWebPage::Copy));
+    }
+
+    if (!linkUrl.isValid() && url().scheme() != QLatin1String("qrc")) {
+        if (!m_contextMenu->isEmpty()) {
+            m_contextMenu->addSeparator();
+        }
+
+        m_contextMenu->addAction(pageAction(QWebPage::Back));
+        m_contextMenu->addAction(pageAction(QWebPage::Forward));
+        m_contextMenu->addSeparator();
+
+        m_contextMenu->addAction(tr("Open Page in Desktop Browser"), this, [this]() {
+            QDesktopServices::openUrl(url());
+        });
+    }
+
+    if (m_contextMenu->isEmpty()) {
+        return;
+    }
+
+    m_contextMenu->popup(event->globalPos());
+#else
+    QWebView::contextMenuEvent(event);
+#endif
 }
 
 void WebView::mousePressEvent(QMouseEvent *event)
@@ -105,19 +179,20 @@ void WebView::mousePressEvent(QMouseEvent *event)
     case Qt::BackButton:
         back();
         event->accept();
-        break;
+        return;
     case Qt::ForwardButton:
         forward();
         event->accept();
-        break;
+        return;
     case Qt::LeftButton:
-        if (!(event->modifiers() & Qt::ControlModifier || event->modifiers() & Qt::ShiftModifier))
-            break;
     case Qt::MiddleButton:
-        m_clickedLink = clickedLink(event->pos());
-        if (m_clickedLink.isValid())
-            event->accept();
-        break;
+        m_clickedLink = hitTestContent(event->pos()).linkUrl();
+        if (!m_clickedLink.isValid() || m_clickedLink.scheme() == QLatin1String("javascript")) {
+            break;
+        }
+
+        event->accept();
+        return;
     default:
         break;
     }
@@ -127,20 +202,83 @@ void WebView::mousePressEvent(QMouseEvent *event)
 
 void WebView::mouseReleaseEvent(QMouseEvent *event)
 {
+    if (event->button() != Qt::LeftButton && event->button() != Qt::MiddleButton) {
+        QWebView::mouseReleaseEvent(event);
+        return;
+    }
+
+    const QUrl clickedLink = hitTestContent(event->pos()).linkUrl();
+    if (!clickedLink.isValid() || clickedLink != m_clickedLink
+            || clickedLink.scheme() == QLatin1String("javascript")) {
+        QWebView::mouseReleaseEvent(event);
+        return;
+    }
+
+    if (isUrlExternal(clickedLink)) {
+        switch (Core::Application::instance()->settings()->externalLinkPolicy) {
+        case Core::Settings::ExternalLinkPolicy::Open:
+            break;
+        case Core::Settings::ExternalLinkPolicy::Ask: {
+            QScopedPointer<QMessageBox> mb(new QMessageBox());
+            mb->setIcon(QMessageBox::Question);
+            mb->setText(tr("How do you want to open the external link?<br>URL: <b>%1</b>")
+                        .arg(clickedLink.toString()));
+
+
+            QCheckBox *checkBox = new QCheckBox("Do &not ask again");
+            mb->setCheckBox(checkBox);
+
+            QPushButton *openInBrowserButton = mb->addButton(tr("Open in &Desktop Browser"),
+                                                             QMessageBox::ActionRole);
+            QPushButton *openInZealButton = mb->addButton(tr("Open in &Zeal"),
+                                                          QMessageBox::ActionRole);
+            mb->addButton(QMessageBox::Cancel);
+
+            mb->setDefaultButton(openInBrowserButton);
+
+            if (mb->exec() == QMessageBox::Cancel) {
+                event->accept();
+                return;
+            }
+
+            if (mb->clickedButton() == openInZealButton) {
+                if (checkBox->isChecked()) {
+                    Core::Application::instance()->settings()->externalLinkPolicy
+                            = Core::Settings::ExternalLinkPolicy::Open;
+                    Core::Application::instance()->settings()->save();
+                }
+
+                break;
+            } else if (mb->clickedButton() == openInBrowserButton) {
+                if (checkBox->isChecked()) {
+                    Core::Application::instance()->settings()->externalLinkPolicy
+                            = Core::Settings::ExternalLinkPolicy::OpenInSystemBrowser;
+                    Core::Application::instance()->settings()->save();
+                }
+            }
+        }
+        case Core::Settings::ExternalLinkPolicy::OpenInSystemBrowser:
+            QDesktopServices::openUrl(clickedLink);
+            event->accept();
+            return;
+        }
+    }
+
     switch (event->button()) {
     case Qt::LeftButton:
-        if (!(event->modifiers() & Qt::ControlModifier || event->modifiers() & Qt::ShiftModifier))
-            break;
-    case Qt::MiddleButton:
-        if (m_clickedLink == clickedLink(event->pos()) && m_clickedLink.isValid()) {
-            QWebView *webView = createWindow(QWebPage::WebBrowserWindow);
-            webView->load(m_clickedLink);
+        if (!(event->modifiers() & Qt::ControlModifier || event->modifiers() & Qt::ShiftModifier)) {
+            load(clickedLink);
             event->accept();
+            return;
         }
-        break;
+    case Qt::MiddleButton:
+        createWindow(QWebPage::WebBrowserWindow)->load(clickedLink);
+        event->accept();
+        return;
     default:
         break;
     }
+
     QWebView::mouseReleaseEvent(event);
 }
 
@@ -165,11 +303,18 @@ void WebView::wheelEvent(QWheelEvent *event)
     QWebView::wheelEvent(event);
 }
 
-QUrl WebView::clickedLink(const QPoint &pos) const
+QWebHitTestResult WebView::hitTestContent(const QPoint &pos) const
 {
-    QWebFrame *frame = page()->frameAt(pos);
-    if (!frame)
-        return QUrl();
+    return page()->mainFrame()->hitTestContent(pos);
+}
 
-    return frame->hitTestContent(pos).linkUrl();
+bool WebView::isUrlExternal(const QUrl &url)
+{
+    static const QStringList localSchemes = {
+        QStringLiteral("file"),
+        QStringLiteral("qrc"),
+    };
+
+    const QString scheme = url.scheme();
+    return !scheme.isEmpty() && !localSchemes.contains(scheme);
 }

@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>600</width>
-    <height>500</height>
+    <height>625</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -173,8 +173,8 @@
          <property name="title">
           <string>Behavior</string>
          </property>
-         <layout class="QFormLayout" name="formLayout">
-          <item row="0" column="0">
+         <layout class="QVBoxLayout" name="verticalLayout_12">
+          <item>
            <widget class="QCheckBox" name="openNewTabAfterActive">
             <property name="text">
              <string>Open new tab after active</string>
@@ -183,6 +183,19 @@
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -232,19 +245,162 @@
          <property name="title">
           <string>Fonts</string>
          </property>
-         <layout class="QFormLayout" name="formLayout_4">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>&amp;Minimum size:</string>
-            </property>
-            <property name="buddy">
-             <cstring>minimumFontSizeSpinBox</cstring>
-            </property>
-           </widget>
+         <layout class="QVBoxLayout" name="verticalLayout_14">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="4,0">
+            <item>
+             <layout class="QFormLayout" name="formLayout">
+              <property name="sizeConstraint">
+               <enum>QLayout::SetMinimumSize</enum>
+              </property>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>De&amp;fault:</string>
+                </property>
+                <property name="buddy">
+                 <cstring>defaultFontComboBox</cstring>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="defaultFontComboBox"/>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>&amp;Serif:</string>
+                </property>
+                <property name="buddy">
+                 <cstring>serifFontComboBox</cstring>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QFontComboBox" name="serifFontComboBox">
+                <property name="fontFilters">
+                 <set>QFontComboBox::ScalableFonts</set>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_6">
+                <property name="text">
+                 <string>Sa&amp;ns-serif:</string>
+                </property>
+                <property name="buddy">
+                 <cstring>sansSerifFontComboBox</cstring>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QFontComboBox" name="sansSerifFontComboBox">
+                <property name="fontFilters">
+                 <set>QFontComboBox::ScalableFonts</set>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>&amp;Monospace:</string>
+                </property>
+                <property name="buddy">
+                 <cstring>fixedFontComboBox</cstring>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QFontComboBox" name="fixedFontComboBox">
+                <property name="fontFilters">
+                 <set>QFontComboBox::MonospacedFonts|QFontComboBox::ScalableFonts</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_16">
+              <item>
+               <layout class="QFormLayout" name="formLayout_6">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_7">
+                  <property name="text">
+                   <string>Si&amp;ze:</string>
+                  </property>
+                  <property name="buddy">
+                   <cstring>fontSizeComboBox</cstring>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QComboBox" name="fontSizeComboBox"/>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <spacer name="verticalSpacer_6">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <layout class="QFormLayout" name="formLayout_4">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_11">
+                  <property name="text">
+                   <string>Siz&amp;e:</string>
+                  </property>
+                  <property name="buddy">
+                   <cstring>fixedFontSizeComboBox</cstring>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QComboBox" name="fixedFontSizeComboBox"/>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+           </layout>
           </item>
-          <item row="0" column="1">
-           <widget class="QSpinBox" name="minimumFontSizeSpinBox"/>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>Minimum f&amp;ont size:</string>
+              </property>
+              <property name="buddy">
+               <cstring>minFontSizeComboBox</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="minFontSizeComboBox"/>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
@@ -258,14 +414,14 @@
           <item row="1" column="0" colspan="2">
            <widget class="QCheckBox" name="darkModeCheckBox">
             <property name="text">
-             <string>&amp;Dark Mode</string>
+             <string>&amp;Dark mode</string>
             </property>
            </widget>
           </item>
           <item row="2" column="0" colspan="2">
            <widget class="QCheckBox" name="highlightOnNavigateCheckBox">
             <property name="text">
-             <string>&amp;Highlight on Navigate</string>
+             <string>&amp;Highlight on navigate</string>
             </property>
            </widget>
           </item>
@@ -274,7 +430,7 @@
             <item>
              <widget class="QLabel" name="customCssFileLabel">
               <property name="text">
-               <string>&amp;Custom CSS File:</string>
+               <string>&amp;Custom CSS file:</string>
               </property>
               <property name="buddy">
                <cstring>customCssFileEdit</cstring>
@@ -291,11 +447,44 @@
             <item>
              <widget class="QPushButton" name="customCssFileBrowseButton">
               <property name="text">
-               <string>&amp;Browse...</string>
+               <string>Bro&amp;wse...</string>
               </property>
              </widget>
             </item>
            </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_7">
+         <property name="title">
+          <string>External Link Behavior</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_13">
+          <item>
+           <widget class="QRadioButton" name="radioExternalLinkAsk">
+            <property name="text">
+             <string>&amp;Ask everytime</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioExternalLinkOpenDesktop">
+            <property name="text">
+             <string>&amp;Open in desktop browser</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioExternalLinkOpen">
+            <property name="text">
+             <string>O&amp;pen in Zeal</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -307,9 +496,16 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
+           <widget class="QCheckBox" name="useSmoothScrollingCheckBox">
+            <property name="text">
+             <string>Use smoo&amp;th scrolling</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="disableAdCheckBox">
             <property name="text">
-             <string>Disable advertisement on the welcome page</string>
+             <string>Disable ad&amp;vertisement on the welcome page</string>
             </property>
            </widget>
           </item>

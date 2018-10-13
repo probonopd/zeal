@@ -25,6 +25,7 @@
 #define ZEAL_WIDGETUI_WEBVIEW_H
 
 #include <QVector>
+#include <QWebFrame>
 #include <QWebView>
 
 namespace Zeal {
@@ -40,7 +41,7 @@ public:
     void setZoomLevel(int level);
 
     static const QVector<int> &availableZoomLevels();
-    static const int defaultZoomLevel();
+    static const int &defaultZoomLevel();
 
 public slots:
     void zoomIn();
@@ -52,13 +53,17 @@ signals:
 
 protected:
     QWebView *createWindow(QWebPage::WebWindowType type) override;
+    void contextMenuEvent(QContextMenuEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
 
 private:
-    QUrl clickedLink(const QPoint &pos) const;
+    QWebHitTestResult hitTestContent(const QPoint &pos) const;
 
+    static bool isUrlExternal(const QUrl &url);
+
+    QMenu *m_contextMenu = nullptr;
     QUrl m_clickedLink;
     int m_zoomLevel = defaultZoomLevel();
 };

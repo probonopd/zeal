@@ -26,12 +26,12 @@
 
 #include <QWidget>
 
-class QLineEdit;
 class QWebHistory;
 
 namespace Zeal {
 namespace WidgetUi {
 
+class SearchToolBar;
 class WebView;
 
 class WebViewTab : public QWidget
@@ -42,7 +42,6 @@ public:
 
     void load(const QUrl &url);
     void focus();
-    QSize sizeHint() const override;
     bool canGoBack() const;
     bool canGoForward() const;
 
@@ -53,31 +52,27 @@ public:
 
     int zoomLevel() const;
     void setZoomLevel(int level);
+    void setJavaScriptEnabled(bool enabled);
 
-    bool eventFilter(QObject *object, QEvent *event) override;
+    void setWebBridgeObject(const QString &name, QObject *object);
 
 signals:
-    void linkClicked(const QUrl &url);
     void titleChanged(const QString &title);
     void urlChanged(const QUrl &url);
 
 public slots:
+    void activateSearchBar();
     void back();
     void forward();
-    void showSearchBar();
-    void hideSearchBar();
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
-    void resizeEvent(QResizeEvent *event) override;
 
 private:
-    void find(const QString &text);
-    void findNext(const QString &text, bool backward = false);
-    void moveLineEdit();
+    friend class WebView;
 
-    QLineEdit *m_searchLineEdit = nullptr;
     WebView *m_webView = nullptr;
+    SearchToolBar *m_searchToolBar = nullptr;
 };
 
 } // namespace WidgetUi

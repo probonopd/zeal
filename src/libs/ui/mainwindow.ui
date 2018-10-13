@@ -15,6 +15,9 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="centralWidgetLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
     <property name="leftMargin">
      <number>0</number>
     </property>
@@ -46,8 +49,17 @@
            <string notr="true"/>
           </property>
           <layout class="QVBoxLayout" name="searchToolBarFrame">
+           <property name="spacing">
+            <number>4</number>
+           </property>
+           <property name="leftMargin">
+            <number>4</number>
+           </property>
            <property name="topMargin">
             <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>4</number>
            </property>
            <property name="bottomMargin">
             <number>0</number>
@@ -67,6 +79,12 @@
         </item>
         <item>
          <widget class="QSplitter" name="tocSplitter">
+          <property name="minimumSize">
+           <size>
+            <width>150</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
@@ -104,8 +122,17 @@
         <item>
          <widget class="ToolBarFrame" name="navigationBar" native="true">
           <layout class="QHBoxLayout" name="toolbox">
+           <property name="spacing">
+            <number>4</number>
+           </property>
+           <property name="leftMargin">
+            <number>4</number>
+           </property>
            <property name="topMargin">
             <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>4</number>
            </property>
            <property name="bottomMargin">
             <number>0</number>
@@ -121,8 +148,8 @@
              <property name="text">
               <string>←</string>
              </property>
-             <property name="icon">
-              <iconset theme="go-previous"/>
+             <property name="autoRaise">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -137,29 +164,36 @@
              <property name="text">
               <string>→</string>
              </property>
-             <property name="icon">
-              <iconset theme="go-next"/>
+             <property name="autoRaise">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="openUrlButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
              </property>
-             <property name="text">
-              <string>Open URL</string>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
              </property>
-            </widget>
+            </spacer>
            </item>
           </layout>
          </widget>
         </item>
         <item>
-         <widget class="QStackedWidget" name="webViewStack"/>
+         <widget class="QStackedWidget" name="webViewStack">
+          <property name="minimumSize">
+           <size>
+            <width>600</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -193,7 +227,6 @@
     <addaction name="actionCheckForUpdates"/>
     <addaction name="separator"/>
     <addaction name="actionAboutZeal"/>
-    <addaction name="actionAboutQt"/>
    </widget>
    <widget class="QMenu" name="menu_Edit">
     <property name="title">
@@ -236,11 +269,6 @@
    </property>
    <property name="text">
     <string>About &amp;Zeal</string>
-   </property>
-  </action>
-  <action name="actionAboutQt">
-   <property name="text">
-    <string>About &amp;Qt</string>
    </property>
   </action>
   <action name="actionBack">

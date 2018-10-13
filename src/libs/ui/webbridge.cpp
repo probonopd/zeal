@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 Oleg Shparber
+** Copyright (C) 2018 Oleg Shparber
 ** Contact: https://go.zealdocs.org/l/contact
 **
 ** This file is part of Zeal.
@@ -20,26 +20,30 @@
 **
 ****************************************************************************/
 
-#ifndef ZEAL_CORE_FILEMANAGER_H
-#define ZEAL_CORE_FILEMANAGER_H
+#include "webbridge.h"
 
-#include <QObject>
+#include <QCoreApplication>
+#include <QDesktopServices>
+#include <QUrl>
 
-namespace Zeal {
-namespace Core {
+using namespace Zeal::WidgetUi;
 
-class FileManager : public QObject
+WebBridge::WebBridge(QObject *parent)
+    : QObject(parent)
 {
-    Q_OBJECT
-public:
-    explicit FileManager(QObject *parent = nullptr);
+}
 
-    bool removeRecursively(const QString &path);
+void WebBridge::openShortUrl(const QString &key)
+{
+    QDesktopServices::openUrl(QUrl(QStringLiteral("https://go.zealdocs.org/l/") + key));
+}
 
-    static QString cacheLocation();
-};
+void WebBridge::triggerAction(const QString &action)
+{
+    emit actionTriggered(action);
+}
 
-} // namespace Core
-} // namespace Zeal
-
-#endif // ZEAL_CORE_FILEMANAGER_H
+QString WebBridge::appVersion() const
+{
+    return QCoreApplication::applicationVersion();
+}

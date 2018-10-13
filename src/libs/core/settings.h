@@ -60,14 +60,28 @@ public:
     bool fuzzySearchEnabled;
 
     // Content
+    QString defaultFontFamily;
+    QString serifFontFamily;
+    QString sansSerifFontFamily;
+    QString fixedFontFamily;
+
+    int defaultFontSize;
+    int defaultFixedFontSize;
     int minimumFontSize;
+
+    enum class ExternalLinkPolicy : unsigned int {
+        Ask = 0,
+        Open,
+        OpenInSystemBrowser
+    };
+    Q_ENUM(ExternalLinkPolicy)
+    ExternalLinkPolicy externalLinkPolicy = ExternalLinkPolicy::Ask;
+
     bool darkModeEnabled;
     bool highlightOnNavigateEnabled;
     QString customCssFile;
+    bool isSmoothScrollingEnabled;
     bool isAdDisabled;
-
-    // TODO: bool askOnExternalLink;
-    // TODO: QString customCss;
 
     // Network
     enum ProxyType : unsigned int {
@@ -117,5 +131,10 @@ private:
 
 } // namespace Core
 } // namespace Zeal
+
+QDataStream &operator<<(QDataStream &out, const Zeal::Core::Settings::ExternalLinkPolicy &policy);
+QDataStream &operator>>(QDataStream &in, Zeal::Core::Settings::ExternalLinkPolicy &policy);
+
+Q_DECLARE_METATYPE(Zeal::Core::Settings::ExternalLinkPolicy)
 
 #endif // ZEAL_CORE_SETTINGS_H

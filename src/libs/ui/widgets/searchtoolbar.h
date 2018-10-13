@@ -1,7 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015-2016 Oleg Shparber
-** Copyright (C) 2013-2014 Jerzy Kozera
+** Copyright (C) 2018 Oleg Shparber
 ** Contact: https://go.zealdocs.org/l/contact
 **
 ** This file is part of Zeal.
@@ -21,38 +20,52 @@
 **
 ****************************************************************************/
 
-#ifndef ZEAL_WIDGETUI_SETTINGSDIALOG_H
-#define ZEAL_WIDGETUI_SETTINGSDIALOG_H
+#ifndef ZEAL_WIDGETUI_SEARCHTOOLBAR_H
+#define ZEAL_WIDGETUI_SEARCHTOOLBAR_H
 
-#include <QDialog>
+#include <QWidget>
+
+class QLineEdit;
+class QToolButton;
+class QWebView;
 
 namespace Zeal {
 namespace WidgetUi {
 
-namespace Ui {
-class SettingsDialog;
-} // namespace Ui
-
-class SettingsDialog : public QDialog
+class SearchToolBar : public QWidget
 {
     Q_OBJECT
 public:
-    explicit SettingsDialog(QWidget *parent = nullptr);
-    ~SettingsDialog() override;
+    explicit SearchToolBar(QWebView *webView, QWidget *parent = nullptr);
 
-private slots:
-    void chooseCustomCssFile();
-    void chooseDocsetStoragePath();
+    void setText(const QString &text);
+    void activate();
+
+    bool eventFilter(QObject *object, QEvent *event) override;
+
+protected:
+    void hideEvent(QHideEvent *event) override;
+    void showEvent(QShowEvent *event) override;
+
+    void keyPressEvent(QKeyEvent *event) override;
 
 private:
-    void loadSettings();
-    void saveSettings();
+    void findNext();
+    void findPrevious();
 
-private:
-    Ui::SettingsDialog *ui = nullptr;
+    void hideHighlight();
+    void updateHighlight();
+
+    QLineEdit *m_lineEdit = nullptr;
+    QToolButton *m_findNextButton = nullptr;
+    QToolButton *m_findPreviousButton = nullptr;
+    QToolButton *m_highlightAllButton = nullptr;
+    QToolButton *m_matchCaseButton = nullptr;
+
+    QWebView *m_webView = nullptr;
 };
 
 } // namespace WidgetUi
 } // namespace Zeal
 
-#endif // ZEAL_WIDGETUI_SETTINGSDIALOG_H
+#endif // ZEAL_WIDGETUI_SEARCHTOOLBAR_H

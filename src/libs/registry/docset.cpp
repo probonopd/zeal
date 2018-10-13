@@ -57,7 +57,7 @@ const char DashDocSetPluginKeyword[] = "DashDocSetPluginKeyword";
 const char DashIndexFilePath[] = "dashIndexFilePath";
 const char DocSetPlatformFamily[] = "DocSetPlatformFamily";
 //const char IsDashDocset[] = "isDashDocset";
-//const char IsJavaScriptEnabled[] = "isJavaScriptEnabled";
+const char IsJavaScriptEnabled[] = "isJavaScriptEnabled";
 }
 }
 
@@ -132,7 +132,8 @@ Docset::Docset(const QString &path) :
     sqlite3_create_function(m_db->handle(), "zealScore", 2, SQLITE_UTF8, nullptr,
                             sqliteScoreFunction, nullptr, nullptr);
 
-    m_type = m_db->tables().contains(QStringLiteral("searchIndex")) ? Type::Dash : Type::ZDash;
+    m_type = m_db->tables().contains(QStringLiteral("searchIndex"), Qt::CaseInsensitive)
+            ? Type::Dash : Type::ZDash;
 
     createIndex();
 
@@ -157,8 +158,13 @@ Docset::Docset(const QString &path) :
 
     if (plist.contains(InfoPlist::DashDocSetFamily)) {
         const QString kw = plist[InfoPlist::DashDocSetFamily].toString();
-        if (kw != QLatin1String("dashtoc") && kw != QLatin1String("unsorteddashtoc"))
+        if (!kw.contains(QLatin1String("dashtoc"))) {
             m_keywords << kw;
+        }
+    }
+
+    if (plist.contains(InfoPlist::IsJavaScriptEnabled)) {
+        m_javaScriptEnabled = plist[InfoPlist::IsJavaScriptEnabled].toBool();
     }
 
     m_keywords.removeDuplicates();
@@ -406,6 +412,13 @@ void Docset::countSymbols()
 
     while (m_db->next()) {
         const QString symbolTypeStr = m_db->value(0).toString();
+
+        // A workaround for https://github.com/zealdocs/zeal/issues/980.
+        if (symbolTypeStr.isEmpty()) {
+            qWarning("Empty symbol type in the '%s' docset, skipping...", qPrintable(m_name));
+            continue;
+        }
+
         const QString symbolType = parseSymbolType(symbolTypeStr);
         m_symbolStrings.insertMulti(symbolType, symbolTypeStr);
         m_symbolCounts[symbolType] += m_db->value(1).toInt();
@@ -671,6 +684,11 @@ bool Docset::isFuzzySearchEnabled() const
 void Docset::setFuzzySearchEnabled(bool enabled)
 {
     m_fuzzySearchEnabled = enabled;
+}
+
+bool Docset::isJavaScriptEnabled() const
+{
+    return m_javaScriptEnabled;
 }
 
 /**

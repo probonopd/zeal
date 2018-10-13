@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 Oleg Shparber
+** Copyright (C) 2018 Oleg Shparber
 ** Contact: https://go.zealdocs.org/l/contact
 **
 ** This file is part of Zeal.
@@ -20,26 +20,33 @@
 **
 ****************************************************************************/
 
-#ifndef ZEAL_CORE_FILEMANAGER_H
-#define ZEAL_CORE_FILEMANAGER_H
+#ifndef ZEAL_WIDGETUI_WEBBRIDGE_H
+#define ZEAL_WIDGETUI_WEBBRIDGE_H
 
 #include <QObject>
 
 namespace Zeal {
-namespace Core {
+namespace WidgetUi {
 
-class FileManager : public QObject
+class WebBridge : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QString AppVersion READ appVersion CONSTANT)
 public:
-    explicit FileManager(QObject *parent = nullptr);
+    explicit WebBridge(QObject *parent = nullptr);
 
-    bool removeRecursively(const QString &path);
+signals:
+    void actionTriggered(const QString &action);
 
-    static QString cacheLocation();
+public slots:
+    Q_INVOKABLE void openShortUrl(const QString &key);
+    Q_INVOKABLE void triggerAction(const QString &action);
+
+private:
+    QString appVersion() const;
 };
 
-} // namespace Core
+} // namespace WidgetUi
 } // namespace Zeal
 
-#endif // ZEAL_CORE_FILEMANAGER_H
+#endif // ZEAL_WIDGETUI_WEBBRIDGE_H
